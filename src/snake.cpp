@@ -77,3 +77,10 @@ bool Snake::SnakeCell(int x, int y) {
   }
   return false;
 }
+
+void Snake::Shrink() {
+  if (size > 1) {
+    size--;
+    body.erase(body.begin());
+  }
+}

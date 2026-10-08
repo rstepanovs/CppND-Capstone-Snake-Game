@@ -1,0 +1,3 @@
+/home/roman/work/claude/Udacity-help/CppND-Capstone-Snake-Game/build/CMakeFiles/SnakeGame.dir
+/home/roman/work/claude/Udacity-help/CppND-Capstone-Snake-Game/build/CMakeFiles/edit_cache.dir
+/home/roman/work/claude/Udacity-help/CppND-Capstone-Snake-Game/build/CMakeFiles/rebuild_cache.dir
