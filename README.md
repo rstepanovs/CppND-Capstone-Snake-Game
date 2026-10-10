@@ -2,6 +2,7 @@
 
 A Snake game written in C++17 with SDL2 for the capstone project of the
 [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213).
+
 It extends the starter project, which was inspired by
 [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl)
 Code Review post.
@@ -141,7 +142,6 @@ from system libraries (Mesa, D-Bus).
 * The font is Dyuthi Regular by Swathanthra Malayalam Computing
   (`assets/fonts/Dyuthi-Regular.ttf`), licensed under GPL-3.0+ with the Font
   Exception or OFL-1.1.
-* `assets/grass/` is a set of grass tiles that is not used by the game any more.
 
 ## CC Attribution-ShareAlike 4.0 International
 
