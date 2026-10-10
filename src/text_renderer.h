@@ -16,14 +16,6 @@ class TextRenderer {
   // Opens the font file. If it cannot be opened, an error is logged and Draw
   // does nothing.
   TextRenderer(const std::string &font_path, int size);
-  ~TextRenderer();
-
-  // The TTF_Font is owned exclusively, so the object can be neither copied nor
-  // moved.
-  TextRenderer(const TextRenderer &) = delete;
-  TextRenderer &operator=(const TextRenderer &) = delete;
-  TextRenderer(TextRenderer &&) = delete;
-  TextRenderer &operator=(TextRenderer &&) = delete;
 
   // Draws `text` starting at `left_x`, its top edge is at `top_y`.
   void DrawLeft(SDL_Renderer *renderer, const std::string &text, int left_x,
@@ -50,7 +42,7 @@ class TextRenderer {
   static void DrawSurface(SDL_Renderer *renderer, SurfacePtr surface, int x,
                           int y);
 
-  TTF_Font *_font{nullptr};  // owned, closed in the destructor
+  FontPtr _font;
 };
 
 #endif

@@ -2,16 +2,9 @@
 #include "text_renderer.h"
 #include "logging.h"
 
-TextRenderer::TextRenderer(const std::string &font_path, int size) {
-  _font = TTF_OpenFont(font_path.c_str(), size);
+TextRenderer::TextRenderer(const std::string &font_path, int size) : _font(TTF_OpenFont(font_path.c_str(), size), TTF_CloseFont) {  
   if (!_font) {
     Logging::Error() << "Failed to open font: " << TTF_GetError();
-  }
-}
-
-TextRenderer::~TextRenderer() {
-  if (_font) {
-    TTF_CloseFont(_font);
   }
 }
 
@@ -42,7 +35,7 @@ SurfacePtr TextRenderer::RenderSurface(const std::string &text,
   }
 
   // Initialize unique_ptr with object initialize and destructor
-  SurfacePtr surface(TTF_RenderUTF8_Blended(_font, text.c_str(), color), SDL_FreeSurface);
+  SurfacePtr surface(TTF_RenderUTF8_Blended(_font.get(), text.c_str(), color), SDL_FreeSurface);
   if (!surface) {
     Logging::Error() << "Failed to render text: " << TTF_GetError();
     return SurfacePtr(nullptr, SDL_FreeSurface);
@@ -109,7 +102,7 @@ SDL_Color HsvToRgb(float hue, float saturation, float value) {
   float v = value;
   float p = value * (1 - saturation);
   float t = value * (1 - saturation * (1-f));
-  float q = value - (1 - saturation * f);
+  float q = value * (1 - saturation * f);
 
   Uint8 R = 0,G = 0,B = 0;
 

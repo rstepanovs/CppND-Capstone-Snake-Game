@@ -35,7 +35,7 @@ class Snake {
 
   Direction direction = Direction::kUp;
 
-  float speed{0.1f};
+  float speed{0.06f};
   int size{kMinSize};
   bool alive{true};
   SDL_Point head;

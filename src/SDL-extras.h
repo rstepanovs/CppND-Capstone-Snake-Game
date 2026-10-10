@@ -2,11 +2,13 @@
 #define SDL_EXTRAS_H
 
 #include <memory>
+#include "SDL_ttf.h"
 #include "SDL.h"
 
 using SurfacePtr = std::unique_ptr<SDL_Surface, void (*)(SDL_Surface *)>;
 using TexturePtr = std::unique_ptr<SDL_Texture, void (*)(SDL_Texture *)>;
-//using
+using FontPtr = std::unique_ptr<TTF_Font, void (*)(TTF_Font *)>;
+
 
 // Overload operators to compare SDL_Point structures
 inline bool operator==(const SDL_Point &a, const SDL_Point &b) {

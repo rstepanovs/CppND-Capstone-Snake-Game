@@ -95,7 +95,7 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 |---|---|
 | The project demonstrates an understanding of C++ functions and control structures | The game loop `game.cpp:32`, the state `switch` `game.cpp:49`, the direction `switch` `snake.cpp:22`, the sprite loops `snake_sprites.cpp:149` |
 | The project accepts input from a user and processes the input | `Controller::HandleInput`, `controller.cpp:14` (`SDL_PollEvent`) |
-| The project reads data from a file and processes the data | Sprites and the font are read from the `assets` directory: `texture.cpp:6` (BMP files), `text_renderer.cpp:6` (TTF font), `snake_sprites.cpp:56` and `renderer.cpp:56` (every `.bmp` of a directory, `std::filesystem::directory_iterator`) |
+| The project reads data from a file and processes the data | Sprites and the font are read from the `assets` directory: `texture.cpp:6` (BMP files), `text_renderer.cpp:5` (TTF font), `snake_sprites.cpp:56` and `renderer.cpp:56` (every `.bmp` of a directory, `std::filesystem::directory_iterator`) |
 | The project uses data structures and immutable variables | `std::map` with a `std::tuple` key `snake_sprites.cpp:17`, `std::unordered_map` of textures `renderer.h:43`, `constexpr` constants `main.cpp:8`, `poison_spawner.cpp:9`, `snake.h:13` |
 
 ### Object Oriented Programming
@@ -107,7 +107,7 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 | Classes abstract implementation details from their interfaces | `SnakeSprites` exposes `Draw` only, the table and the geometry helpers are private; `MessageQueue` hides the mutex |
 | Classes encapsulate behavior | `PoisonField`, `Texture`, `TextRenderer`, `Logging` |
 | Classes follow an appropriate inheritance hierarchy with virtual and override functions | `Item` (`item.h:11`) is an abstract base with the pure virtual `Apply` and `SpriteName`, `Fruit` (`fruit.h:8`) and `Poison` (`poison.h:10`) override them. `Game` holds the food as `std::unique_ptr<Item>` and calls `Apply` without knowing the kind |
-| Overloaded functions or operators | `operator==` and `operator!=` for `SDL_Point` in `SDL-extras.h:12`, `Logging::Line::operator<<` `logging.h:40` |
+| Overloaded functions or operators | `operator==` and `operator!=` for `SDL_Point` in `SDL-extras.h:14`, `Logging::Line::operator<<` `logging.h:40` |
 | Templates generalize functions or classes | `MessageQueue<T>` `message_queue.h:8`, `Logging::Line::operator<<` `logging.h:39` |
 
 ### Memory Management
@@ -115,11 +115,11 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 | Point | Where |
 |---|---|
 | The project makes use of references in function declarations | `const Snake &`, `const Item &`, `const std::vector<SDL_Point> &` in `renderer.h:22`, `const SDL_Point &` in `poison_field.h`, `snake_sprites.h:33` |
-| The project uses destructors appropriately | `TextRenderer::~TextRenderer` `text_renderer.cpp:12` closes the font, `PoisonSpawner::~PoisonSpawner` `poison_spawner.cpp:20` stops and joins the thread, `Renderer::~Renderer` releases the SDL objects in the right order |
-| The project uses scope / RAII | `SurfacePtr` and `TexturePtr` (`unique_ptr` with a custom deleter) `SDL-extras.h:7`, `Texture`, `TextRenderer`, `std::lock_guard` in `message_queue.h:12` and `logging.cpp:54` |
-| The project follows the Rule of 5 | `Texture` `texture.h:13-20` and `TextRenderer` `text_renderer.h:23-26` declare destructor, copy and move operations explicitly |
+| The project uses destructors appropriately | `PoisonSpawner::~PoisonSpawner` `poison_spawner.cpp:20` stops and joins the thread, `Renderer::~Renderer` releases the SDL objects in the right order (fonts before `TTF_Quit()`) |
+| The project uses scope / RAII | `SurfacePtr`, `TexturePtr` and `FontPtr` (`unique_ptr` with a custom deleter) `SDL-extras.h:8-10`, `Texture`, `TextRenderer` (owns a `FontPtr`), `std::lock_guard` in `message_queue.h:12` and `logging.cpp:54` |
+| The project follows the Rule of 5 | `Texture` `texture.h:15-20` declares the destructor, copy and move operations explicitly. `TextRenderer` follows the rule of 0: its only resource is a `FontPtr` |
 | The project uses move semantics | `MessageQueue::Send(T &&)` `message_queue.h:11`, `std::move` of poisons `game.cpp:126`, `poison_field.cpp:8`, movable `Texture` `texture.h:19` |
-| The project uses smart pointers instead of raw pointers | `std::unique_ptr<Item>` `game.h:31`, `std::vector<std::unique_ptr<Poison>>` `poison_field.h:32`, `std::unique_ptr<SnakeSprites>` and the fonts `renderer.h:42` |
+| The project uses smart pointers instead of raw pointers | `std::unique_ptr<Item>` `game.h:31`, `std::vector<std::unique_ptr<Poison>>` `poison_field.h:32`, `std::unique_ptr<SnakeSprites>` and the `TextRenderer`s `renderer.h:42-46`, `FontPtr` `SDL-extras.h:10` |
 
 ### Concurrency
 
