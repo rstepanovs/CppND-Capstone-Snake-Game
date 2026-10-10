@@ -1,5 +1,4 @@
 #include "game.h"
-#include <iostream>
 #include <array>
 #include <string>
 #include "fruit.h"
@@ -45,7 +44,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     {
       _poison_spawner.SetActive(false);
     }
-    
+
 
     switch (_state) {
       case GameState::kStart:
@@ -90,7 +89,7 @@ void Game::PlaceFood() {
       "apple", "banana", "cherry", "grapes", "lemon", "orange", "pear",
       "strawberry", "watermelon"};
 
-      
+
   std::uniform_int_distribution<int> random_fruit(0, static_cast<int>(fruit_names.size() - 1));
   const std::string &name = fruit_names[random_fruit(engine)];
 

@@ -31,12 +31,12 @@ void TextRenderer::DrawCentered(SDL_Renderer *renderer, const std::string &text,
   const int y = top_y;
 
   DrawSurface(renderer, std::move(surface), x, y);
-  
+
 }
 
 SurfacePtr TextRenderer::RenderSurface(const std::string &text,
                                          SDL_Color color) const {
-                                          
+
   if (!_font || text.empty()) {
     return SurfacePtr(nullptr, SDL_FreeSurface);
   }
@@ -57,7 +57,7 @@ void TextRenderer::DrawSurface(SDL_Renderer *renderer, SurfacePtr surface,
   if (!surface) {
     Logging::Error() << "Failed to render text: " << TTF_GetError();
     return;
-  }                                
+  }
 
   TexturePtr texture(SDL_CreateTextureFromSurface(renderer, surface.get()), SDL_DestroyTexture);
 
@@ -65,7 +65,7 @@ void TextRenderer::DrawSurface(SDL_Renderer *renderer, SurfacePtr surface,
     Logging::Error() << "Failed to create texture: " << SDL_GetError();
     return;
   }
-  
+
   SDL_Rect destination;
 
   destination.w = surface->w;
@@ -140,7 +140,7 @@ SDL_Color HsvToRgb(float hue, float saturation, float value) {
     G = ConvColor(p);
     B = ConvColor(v);
     break;
-  case 5:    
+  case 5:
     R = ConvColor(v);
     G = ConvColor(p);
     B = ConvColor(q);
@@ -173,7 +173,7 @@ void TextRenderer::DrawGradientCentered(SDL_Renderer *renderer,
       Uint8 r,g,b,a;
       SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
       if(a == 0)
-        continue; 
+        continue;
       float hue = fmod(phase + 360.0f * x / surface->w, 360.0f);
       SDL_Color c = HsvToRgb(hue, 0.8f, 1.0f);
       Uint32 *pixels = reinterpret_cast<Uint32 *>(row);

@@ -22,7 +22,7 @@ class SnakeSprites {
   void Draw(SDL_Renderer *renderer, const Snake &snake, int cell_w, int cell_h,
             int grid_w, int grid_h) const;
 
-  // Snake parts: tail, body and head. 
+  // Snake parts: tail, body and head.
   enum class Part { kTail, kBody, kHead };
 
 

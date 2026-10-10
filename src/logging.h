@@ -53,7 +53,7 @@ class Logging {
   static Line Error();
 
  private:
-  // Writes "[<time>] [<level>] [thread <id>] <message>" to std::cerr. Called
+  // Writes "[<time>] [<level>] [thread <id>] <message>" to std::cout. Called
   // by Line only.
   static void Log(LogLevel level, const std::string &message);
   static const char *LevelName(LogLevel level);

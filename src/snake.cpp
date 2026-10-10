@@ -1,6 +1,5 @@
 #include "snake.h"
 #include <cmath>
-#include <iostream>
 #include "SDL-extras.h"
 
 void Snake::Update() {
@@ -12,9 +11,9 @@ void Snake::Update() {
     return;
 
   _progress -= 1.0f;
-  
-  
-  SDL_Point prev = head;  // We first capture the head's cell before updating.  
+
+
+  SDL_Point prev = head;  // We first capture the head's cell before updating.
   MoveHead();
   UpdateBody(head, prev);
 }
@@ -22,7 +21,7 @@ void Snake::Update() {
 void Snake::MoveHead() {
   switch (direction) {
     case Direction::kUp:
-      head.y--;      
+      head.y--;
       break;
 
     case Direction::kDown:

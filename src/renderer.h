@@ -32,17 +32,11 @@ class Renderer {
   // Clears the screen and draws fruit, poisons and snake, without presenting.
   void DrawScene(Snake const snake, const Item &food,
                  const std::vector<SDL_Point> &poisons);
-  // Tiles the grass texture over the whole window.
-  void RenderBackground();
-
   SDL_Window *sdl_window;
   SDL_Renderer *sdl_renderer;
 
   // Directory with the sprites ("<directory of the executable>/assets/").
   std::string assets_path;
-  // Seamless 64x64 grass tile (covers 2x2 grid cells). Must be destroyed
-  // before sdl_renderer, see the destructor.
-  Texture grass_bg;
   // Owns the snake sprites. Created once the SDL renderer exists and released
   // before it is destroyed.
   std::unique_ptr<SnakeSprites> snake_sprites;

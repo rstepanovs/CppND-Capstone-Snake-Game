@@ -6,7 +6,7 @@
 
 using SurfacePtr = std::unique_ptr<SDL_Surface, void (*)(SDL_Surface *)>;
 using TexturePtr = std::unique_ptr<SDL_Texture, void (*)(SDL_Texture *)>;
-//using 
+//using
 
 // Overload operators to compare SDL_Point structures
 inline bool operator==(const SDL_Point &a, const SDL_Point &b) {

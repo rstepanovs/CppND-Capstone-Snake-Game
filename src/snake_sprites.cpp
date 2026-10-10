@@ -1,5 +1,4 @@
 #include "snake_sprites.h"
-#include <iostream>
 #include <string>
 #include <filesystem>
 #include <map>
@@ -142,7 +141,7 @@ void SnakeSprites::Draw(SDL_Renderer *renderer, const Snake &snake, int cell_w,
   std::vector<SDL_Point> chain(snake.body.begin(), snake.body.end());
   chain.push_back(snake.head);
   const std::size_t chain_size = chain.size();
-  
+
   //Draw head
   DrawSprite(renderer, SpriteName(Part::kHead, chain[chain_size - 2], chain.back(), Ahead(chain.back(), snake.direction), grid_w, grid_h), chain.back(), cell_w, cell_h);
 

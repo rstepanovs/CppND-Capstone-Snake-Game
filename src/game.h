@@ -27,7 +27,7 @@ class Game {
   GameState _state{GameState::kStart};
 
   Snake _snake;
-  
+
   std::unique_ptr<Item> _food;
 
   PoisonField _poison_field;

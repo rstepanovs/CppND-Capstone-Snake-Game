@@ -13,9 +13,9 @@ class Snake {
   static constexpr int kMinSize{3};
 
   Snake(int grid_width, int grid_height)
-      : grid_width(grid_width),
-        grid_height(grid_height),
-        head{static_cast<int>(grid_width / 2), static_cast<int>(grid_height / 2)}
+      : head{static_cast<int>(grid_width / 2), static_cast<int>(grid_height / 2)},
+        grid_width(grid_width),
+        grid_height(grid_height)
          {
           // Adding tail and body
           SDL_Point t = head;
@@ -24,7 +24,7 @@ class Snake {
           b.y += 1;
           body.push_back(t);
           body.push_back(b);
-          
+
         }
 
   void Update();
@@ -35,8 +35,7 @@ class Snake {
 
   Direction direction = Direction::kUp;
 
-  float speed{0.05f};
-  float _progress{0.0f};
+  float speed{0.1f};
   int size{kMinSize};
   bool alive{true};
   SDL_Point head;
@@ -46,6 +45,8 @@ class Snake {
   void MoveHead();
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell);
 
+  // How much of the next step has been accumulated: 0 <= _progress < 1.
+  float _progress{0.0f};
   bool growing{false};
   int grid_width;
   int grid_height;

@@ -1,5 +1,4 @@
 #include "renderer.h"
-#include <iostream>
 #include <string>
 #include <filesystem>
 #include "logging.h"
@@ -44,8 +43,6 @@ Renderer::Renderer(const std::size_t screen_width,
   }
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-  grass_bg = Texture(sdl_renderer, assets_path + "grass/grass_bg.bmp");
-
   snake_sprites = std::make_unique<SnakeSprites>(sdl_renderer, assets_path);
 
   if (TTF_Init() != 0) {
@@ -68,7 +65,6 @@ Renderer::Renderer(const std::size_t screen_width,
 }
 
 Renderer::~Renderer() {
-  grass_bg = Texture();  // release the texture
   snake_sprites.reset();
   title_font.reset();
   text_font.reset();
@@ -78,18 +74,6 @@ Renderer::~Renderer() {
   sdl_renderer = nullptr;
   SDL_DestroyWindow(sdl_window);
   SDL_Quit();
-}
-
-void Renderer::RenderBackground() {
-  SDL_Rect block;
-  block.w = screen_width / grid_width;
-  block.h = screen_height / grid_height;
-  for (int y = 0; y < screen_height; y += 2 *block.h) {
-    for (int x = 0; x < screen_width; x += 2 * block.w) {
-      SDL_Rect destination{x, y, 2 * block.w, 2 * block.h};
-      grass_bg.Draw(sdl_renderer, destination);
-    }
-  } 
 }
 
 void Renderer::Render(Snake const snake, const Item &food, const std::vector<SDL_Point> &poisons, int score) {
@@ -108,9 +92,6 @@ void Renderer::DrawScene(Snake const snake, const Item &food, const std::vector<
   SDL_SetRenderDrawColor(sdl_renderer, 0x2E, 0x4A, 0x2E, 0xFF);
   SDL_RenderClear(sdl_renderer);
 
-  // Removed for better sprites visibility
-  //RenderBackground();
-
   // Render food
   auto it = item_textures.find(food.SpriteName());
   if (it != item_textures.end()) {
@@ -120,7 +101,7 @@ void Renderer::DrawScene(Snake const snake, const Item &food, const std::vector<
     destination.w = block.w;
     destination.h = block.h;
     it->second.Draw(sdl_renderer, destination);
-  } else {    
+  } else {
     SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
     block.x = food.Position().x * block.w;
     block.y = food.Position().y * block.h;
@@ -145,9 +126,6 @@ void Renderer::RenderStart() {
   SDL_SetRenderDrawColor(sdl_renderer, 0x2E, 0x4A, 0x2E, 0xFF);
   SDL_RenderClear(sdl_renderer);
 
-  SDL_Color title_color{0xE8, 0xE8, 0xE8, 0xFF};
-  SDL_Color text_color{0xE8, 0xE8, 0xE8, 0xFF};
-
   float phase = SDL_GetTicks() * 0.1f;
 
   title_font->DrawGradientCentered(sdl_renderer, "Python", screen_width / 2,
@@ -167,9 +145,6 @@ void Renderer::RenderGameOver(Snake const snake, const Item &food,
   SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 160);
   SDL_RenderFillRect(sdl_renderer, nullptr);
   SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_NONE);
-
-  SDL_Color title_color{0xE8, 0xE8, 0xE8, 0xFF};
-  SDL_Color text_color{0xE8, 0xE8, 0xE8, 0xFF};
 
   float phase = SDL_GetTicks() * 0.1f;
 

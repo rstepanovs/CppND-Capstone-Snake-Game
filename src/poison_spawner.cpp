@@ -14,7 +14,7 @@ constexpr int kMaxLifetimeMs{8000};
 
 PoisonSpawner::PoisonSpawner(PoisonQueue &queue, int grid_width, int grid_height) : _queue(queue), _grid_width(grid_width), _grid_height(grid_height) {
   _stop_future = _stop.get_future();
-  _thread = std::thread(&PoisonSpawner::Run, this);  
+  _thread = std::thread(&PoisonSpawner::Run, this);
 }
 
 PoisonSpawner::~PoisonSpawner() {
@@ -22,7 +22,7 @@ PoisonSpawner::~PoisonSpawner() {
   _thread.join();
 }
 
-void PoisonSpawner::SetActive(bool active) { 
+void PoisonSpawner::SetActive(bool active) {
   _active = active;
  }
 
@@ -46,7 +46,7 @@ std::uniform_int_distribution<int> y_dist(0, _grid_height - 1);
       int lifetime = lifetime_dist(engine);
       _queue.Send(std::make_unique<Poison>(cell, std::chrono::milliseconds(lifetime)));
     }
-    
+
   }
-  
+
 }

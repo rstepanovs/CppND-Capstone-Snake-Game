@@ -19,11 +19,11 @@ namespace {
   };
 }
 
-void Logging::SetLevel(LogLevel level) {  
+void Logging::SetLevel(LogLevel level) {
   _level.store(level);
 }
 
-LogLevel Logging::Level() {  
+LogLevel Logging::Level() {
   return _level.load();
 }
 
@@ -46,12 +46,12 @@ localtime_r(&seconds, &local_time);
 
   std::ostringstream oss;
   oss << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S") << '.'
-      << std::setfill('0') << std::setw(3) << ms      
+      << std::setfill('0') << std::setw(3) << ms
       << " [" << LevelName(level) << "] "
       << "[thread " << std::this_thread::get_id() << "] "
       << message;
 
-  std::lock_guard<std::mutex> lock(_mutex);      
+  std::lock_guard<std::mutex> lock(_mutex);
   std::cout << oss.str() << "\n";
 }
 
