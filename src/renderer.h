@@ -19,18 +19,18 @@ class Renderer {
   ~Renderer();
 
   // Draws the board and the score in the top left corner.
-  void Render(Snake const snake, const Item &food,
+  void Render(const Snake &snake, const Item &food,
               const std::vector<SDL_Point> &poisons, int score);
   // Start screen: the title and the keys.
   void RenderStart();
   // The frozen board under a dark veil, "Game Over", the score and the keys.
-  void RenderGameOver(Snake const snake, const Item &food,
+  void RenderGameOver(const Snake &snake, const Item &food,
                       const std::vector<SDL_Point> &poisons, int score);
   void UpdateWindowTitle(int score, int fps);
 
  private:
   // Clears the screen and draws fruit, poisons and snake, without presenting.
-  void DrawScene(Snake const snake, const Item &food,
+  void DrawScene(const Snake &snake, const Item &food,
                  const std::vector<SDL_Point> &poisons);
   SDL_Window *sdl_window;
   SDL_Renderer *sdl_renderer;

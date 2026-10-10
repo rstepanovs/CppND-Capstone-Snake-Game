@@ -76,14 +76,14 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, const Item &food, const std::vector<SDL_Point> &poisons, int score) {
+void Renderer::Render(const Snake &snake, const Item &food, const std::vector<SDL_Point> &poisons, int score) {
   DrawScene(snake, food, poisons);
   text_font->DrawLeft(sdl_renderer, "Score: " + std::to_string(score), 10, 6, {0, 0, 0, 0xB0});
   text_font->DrawLeft(sdl_renderer, "Score: " + std::to_string(score), 9, 5, {0xFF, 0xD8, 0x0a, 0xB0});
   SDL_RenderPresent(sdl_renderer);
 }
 
-void Renderer::DrawScene(Snake const snake, const Item &food, const std::vector<SDL_Point> &poisons) {
+void Renderer::DrawScene(const Snake &snake, const Item &food, const std::vector<SDL_Point> &poisons) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -138,7 +138,7 @@ void Renderer::RenderStart() {
   SDL_RenderPresent(sdl_renderer);
 }
 
-void Renderer::RenderGameOver(Snake const snake, const Item &food,
+void Renderer::RenderGameOver(const Snake &snake, const Item &food,
                               const std::vector<SDL_Point> &poisons, int score) {
   DrawScene(snake, food, poisons);
   SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
