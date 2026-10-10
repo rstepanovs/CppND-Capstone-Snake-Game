@@ -6,14 +6,13 @@
 
 
 namespace {
-constexpr std::size_t kMaxPoisons{3};
 constexpr int kMinDelayMs{3000};
 constexpr int kMaxDelayMs{8000};
 constexpr int kMinLifetimeMs{4000};
 constexpr int kMaxLifetimeMs{8000};
 }  // namespace
 
-PoisonSpawner::PoisonSpawner(PoisonField &field, PlaceFunction place, int grid_width, int grid_height) : _field(field), _place(std::move(place)), _grid_width(grid_width), _grid_height(grid_height) {
+PoisonSpawner::PoisonSpawner(PoisonQueue &queue, int grid_width, int grid_height) : _queue(queue), _grid_width(grid_width), _grid_height(grid_height) {
   _stop_future = _stop.get_future();
   _thread = std::thread(&PoisonSpawner::Run, this);  
 }
@@ -42,14 +41,10 @@ std::uniform_int_distribution<int> y_dist(0, _grid_height - 1);
       return;
     }
 
-    if (_active && _field.Count() < kMaxPoisons) {
+    if (_active) {
       SDL_Point cell{x_dist(engine), y_dist(engine)};
       int lifetime = lifetime_dist(engine);
-      // TODO 16: do not add the poison here any more. Call the callback
-      //          `_place(cell, std::chrono::milliseconds(lifetime))` instead.
-      //          If it returns false (the cell is taken), just try again at the
-      //          next round. Then `Add` and the Poison include are not needed.
-      _field.Add(std::make_unique<Poison>(cell, std::chrono::milliseconds(lifetime)));
+      _queue.Send(std::make_unique<Poison>(cell, std::chrono::milliseconds(lifetime)));
     }
     
   }

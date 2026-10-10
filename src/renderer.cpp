@@ -92,8 +92,10 @@ void Renderer::RenderBackground() {
   } 
 }
 
-void Renderer::Render(Snake const snake, const Item &food, const std::vector<SDL_Point> &poisons) {
+void Renderer::Render(Snake const snake, const Item &food, const std::vector<SDL_Point> &poisons, int score) {
   DrawScene(snake, food, poisons);
+  text_font->DrawLeft(sdl_renderer, "Score: " + std::to_string(score), 10, 6, {0, 0, 0, 0xB0});
+  text_font->DrawLeft(sdl_renderer, "Score: " + std::to_string(score), 9, 5, {0xFF, 0xD8, 0x0a, 0xB0});
   SDL_RenderPresent(sdl_renderer);
 }
 
@@ -146,12 +148,14 @@ void Renderer::RenderStart() {
   SDL_Color title_color{0xE8, 0xE8, 0xE8, 0xFF};
   SDL_Color text_color{0xE8, 0xE8, 0xE8, 0xFF};
 
-  title_font->DrawCentered(sdl_renderer, "Python", screen_width / 2,
-                           screen_height / 3 - 36, title_color);
-  text_font->DrawCentered(sdl_renderer,
+  float phase = SDL_GetTicks() * 0.1f;
+
+  title_font->DrawGradientCentered(sdl_renderer, "Python", screen_width / 2,
+                           screen_height / 3 - 36, phase);
+  text_font->DrawGradientCentered(sdl_renderer,
                           "Enter to start game, ESC to exit",
                           screen_width / 2,
-                          screen_height / 3 + 76, text_color);
+                          screen_height / 3 + 76, phase);
 
   SDL_RenderPresent(sdl_renderer);
 }
@@ -167,16 +171,18 @@ void Renderer::RenderGameOver(Snake const snake, const Item &food,
   SDL_Color title_color{0xE8, 0xE8, 0xE8, 0xFF};
   SDL_Color text_color{0xE8, 0xE8, 0xE8, 0xFF};
 
-  title_font->DrawCentered(sdl_renderer, "Game Over", screen_width / 2,
-                           screen_height / 3 - 36, title_color);
-  text_font->DrawCentered(sdl_renderer,
+  float phase = SDL_GetTicks() * 0.1f;
+
+  title_font->DrawGradientCentered(sdl_renderer, "Game Over", screen_width / 2,
+                           screen_height / 3 - 36, phase);
+  text_font->DrawGradientCentered(sdl_renderer,
                           "Score: " + std::to_string(score),
                           screen_width / 2,
-                          screen_height / 3 + 76, text_color);
-  text_font->DrawCentered(sdl_renderer,
+                          screen_height / 3 + 76, phase);
+  text_font->DrawGradientCentered(sdl_renderer,
                           "Enter to continue, ESC to exit",
                           screen_width / 2,
-                          screen_height / 3 + 112, text_color);
+                          screen_height / 3 + 112, phase);
 
   SDL_RenderPresent(sdl_renderer);
 }

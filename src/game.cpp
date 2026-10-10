@@ -6,6 +6,7 @@
 #include "logging.h"
 #include "poison.h"
 #include "SDL.h"
+#include "SDL-extras.h"
 
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
@@ -13,18 +14,10 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       _grid_height(grid_height),
       _snake(grid_width, grid_height),
       _poison_field(),
-      _poison_spawner(_poison_field,
-                      [this](const SDL_Point &cell,
-                             std::chrono::milliseconds lifetime) {
-                        return TrySpawnPoison(cell, lifetime);
-                      },
-                      grid_width, grid_height),
+      _poison_spawner(_poison_queue, grid_width, grid_height),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)) {
-  // TODO 17: take the _world_mutex here (std::lock_guard): PlaceFood requires
-  //          it. The spawner is not active yet, but the rule is the same
-  //          everywhere.
   PlaceFood();
 }
 
@@ -60,7 +53,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
         break;
       case GameState::kPlaying:
         Update();
-        renderer.Render(_snake, *_food, _poison_field.Positions());
+        renderer.Render(_snake, *_food, _poison_field.Positions(), score);
         break;
       case GameState::kGameOver:
         renderer.RenderGameOver(_snake, *_food, _poison_field.Positions(),
@@ -101,36 +94,42 @@ void Game::PlaceFood() {
   std::uniform_int_distribution<int> random_fruit(0, static_cast<int>(fruit_names.size() - 1));
   const std::string &name = fruit_names[random_fruit(engine)];
 
-  int x, y;
   while (true) {
-    x = random_w(engine);
-    y = random_h(engine);
+    SDL_Point p{random_w(engine), random_h(engine)};
     // Check that the location is not occupied by a snake item before placing
     // food.
-    // TODO 18: also skip cells that have a poison (_poison_field.Contains).
-    if (!_snake.SnakeCell(x, y)) {
-      _food = std::make_unique<Fruit>(SDL_Point{x, y}, name);
+    if (!_snake.SnakeCell(p) && !_poison_field.Contains(p)) {
+      _food = std::make_unique<Fruit>(p, name);
       return;
     }
   }
 }
 
-// TODO 19: implement TrySpawnPoison: take the _world_mutex, return false if
-//          `cell` is the food position, a snake cell (_snake.SnakeCell) or
-//          _poison_field.Contains(cell); otherwise add
-//          std::make_unique<Poison>(cell, lifetime) to _poison_field and return
-//          true. The check and the Add must happen under ONE lock, otherwise
-//          the snake can move onto the cell in between.
-bool Game::TrySpawnPoison(const SDL_Point &cell,
-                          std::chrono::milliseconds lifetime) {
-  (void)cell;
-  (void)lifetime;
-  return false;
+namespace {
+  constexpr std::size_t kMaxPoisons{3};
+  }
+
+void Game::AddSpawnedPoisons() {
+  std::vector<std::unique_ptr<Poison>> poisons = _poison_queue.TakeAll();
+  for(auto &p : poisons) {
+    if(_poison_field.Count() >= kMaxPoisons)
+      continue;
+
+    if(p->Position() == _food->Position())
+      continue;
+
+    if(_snake.SnakeCell(p->Position()))
+      continue;
+
+    if(_poison_field.Contains(p->Position()))
+      continue;
+
+    _poison_field.Add(std::move(p));
+  }
 }
 
 void Game::Reset() {
-  // TODO 20: take the _world_mutex for the whole function: _snake and _food
-  //          are replaced here while the spawner thread may be reading them.
+  _poison_queue.TakeAll();
   _snake = Snake(_grid_width, _grid_height);
   score = 0;
   _poison_field.Clear();
@@ -139,9 +138,8 @@ void Game::Reset() {
 }
 
 void Game::Update() {
-  // TODO 21: take the _world_mutex for the whole function (the snake moves, the
-  //          food is replaced). PoisonField functions called below take their
-  //          own mutex inside: that is the allowed lock order.
+
+  AddSpawnedPoisons();
 
   _snake.Update();
 
@@ -152,17 +150,17 @@ void Game::Update() {
     return;
   }
 
-  int new_x = static_cast<int>(_snake.head_x);
-  int new_y = static_cast<int>(_snake.head_y);
+  SDL_Point new_point = _snake.head;
+
 
   // Check if there's food over here
-  if (_food->Position().x == new_x && _food->Position().y == new_y) {
+  if (_food->Position() == new_point) {
     _food->Apply(_snake, score);
     PlaceFood();
   }
 
   _poison_field.RemoveExpired();
-  auto poison = _poison_field.TakeAt(SDL_Point{new_x, new_y});
+  auto poison = _poison_field.TakeAt(new_point);
   if (poison) {
     poison->Apply(_snake, score);
     if (score < 0) {

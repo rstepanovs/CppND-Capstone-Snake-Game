@@ -18,8 +18,9 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
+  // Draws the board and the score in the top left corner.
   void Render(Snake const snake, const Item &food,
-              const std::vector<SDL_Point> &poisons);
+              const std::vector<SDL_Point> &poisons, int score);
   // Start screen: the title and the keys.
   void RenderStart();
   // The frozen board under a dark veil, "Game Over", the score and the keys.

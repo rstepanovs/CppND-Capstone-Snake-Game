@@ -3,15 +3,13 @@
 
 #include <cstddef>
 #include <memory>
-#include <mutex>
 #include <vector>
 #include "SDL.h"
 #include "poison.h"
 
-// Thread-safe storage for the poisons that are currently on the board.
-// The spawner thread adds poisons, the game thread removes expired ones,
-// eats them and reads their positions for drawing. Every public function
-// locks `mutex` for its whole body.
+// Storage for the poisons that are currently on the board. Used by the game
+// thread only: the spawner thread sends new poisons through a MessageQueue and
+// the game thread adds them here, so no locking is needed.
 class PoisonField {
  public:
   void Add(std::unique_ptr<Poison> poison);
@@ -31,7 +29,6 @@ class PoisonField {
   void Clear();
 
  private:
-  mutable std::mutex _mutex;
   std::vector<std::unique_ptr<Poison>> _poisons;
 };
 

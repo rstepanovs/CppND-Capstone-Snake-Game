@@ -2,28 +2,23 @@
 #define POISON_SPAWNER_H
 
 #include <atomic>
-#include <chrono>
-#include <functional>
+#include <memory>
 #include <future>
 #include <thread>
-#include "poison_field.h"
+#include "message_queue.h"
+#include "poison.h"
 
-// Runs a background thread that, at random moments, asks the game to put a new
-// poison on a random cell. The spawner does not know the board: the game
-// decides whether the cell is free (not the food, not the snake, not another
-// poison) and places the poison itself, see the `place` callback. Expired
-// poisons are removed by the game thread (PoisonField::RemoveExpired).
+// Runs a background thread that, at random moments, creates a poison with a
+// random cell and lifetime and sends it to a MessageQueue. The spawner does not
+// know the board: the game thread takes the poisons from the queue and decides
+// whether the cell is free, see Game::Update.
 class PoisonSpawner {
  public:
-  // Called by the spawner thread with a candidate cell and the lifetime of the
-  // poison. Returns true if the poison was placed, false if the cell is taken.
-  using PlaceFunction =
-      std::function<bool(const SDL_Point &, std::chrono::milliseconds)>;
+  using PoisonQueue = MessageQueue<std::unique_ptr<Poison>>;
 
-  // `field` is only used to count the poisons. The callback is called from the
-  // spawner thread, so everything it touches must be protected.
-  PoisonSpawner(PoisonField &field, PlaceFunction place, int grid_width,
-                int grid_height);
+  // The queue must outlive the spawner (the thread uses it until the
+  // destructor has joined it).
+  PoisonSpawner(PoisonQueue &queue, int grid_width, int grid_height);
 
   ~PoisonSpawner();
 
@@ -38,8 +33,7 @@ class PoisonSpawner {
  private:
   void Run();
 
-  PoisonField &_field;
-  PlaceFunction _place;
+  PoisonQueue &_queue;
   std::atomic<bool> _active{false};
   int _grid_width;
   int _grid_height;

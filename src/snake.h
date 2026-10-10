@@ -3,34 +3,47 @@
 
 #include <vector>
 #include "SDL.h"
+#include "SDL-extras.h"
 
 class Snake {
  public:
   enum class Direction { kUp, kDown, kLeft, kRight };
 
+  // The snake never gets shorter than this: head, one body cell and the tail.
+  static constexpr int kMinSize{3};
+
   Snake(int grid_width, int grid_height)
       : grid_width(grid_width),
         grid_height(grid_height),
-        head_x(grid_width / 2),
-        head_y(grid_height / 2) {}
+        head{static_cast<int>(grid_width / 2), static_cast<int>(grid_height / 2)}
+         {
+          // Adding tail and body
+          SDL_Point t = head;
+          SDL_Point b = head;
+          t.y += 2;
+          b.y += 1;
+          body.push_back(t);
+          body.push_back(b);
+          
+        }
 
   void Update();
 
   void GrowBody();
   void Shrink();
-  bool SnakeCell(int x, int y);
+  bool SnakeCell(SDL_Point p);
 
   Direction direction = Direction::kUp;
 
-  float speed{0.1f};
-  int size{1};
+  float speed{0.05f};
+  float _progress{0.0f};
+  int size{kMinSize};
   bool alive{true};
-  float head_x;
-  float head_y;
+  SDL_Point head;
   std::vector<SDL_Point> body;
 
  private:
-  void UpdateHead();
+  void MoveHead();
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell);
 
   bool growing{false};

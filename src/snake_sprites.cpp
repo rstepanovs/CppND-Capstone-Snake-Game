@@ -5,102 +5,49 @@
 #include <map>
 #include <tuple>
 #include "logging.h"
+#include "SDL-extras.h"
 
 
 namespace {
 
+  using Part = SnakeSprites::Part;
+  using Dir  = Snake::Direction;
+
   // Map sprite names to the corresponding part and directions.
-  const std::map<std::tuple<SnakeSprites::Part, Snake::Direction, Snake::Direction>,
+  const std::map<std::tuple<Part, Dir, Dir>,
                  std::string> kSprites = {
       /* Body sprites*/
-      {{SnakeSprites::Part::kBody, Snake::Direction::kLeft,
-        Snake::Direction::kRight},
-       "body_horizontal"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kRight,
-        Snake::Direction::kLeft},
-       "body_horizontal"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kUp,
-        Snake::Direction::kDown},
-       "body_vertical"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kDown,
-        Snake::Direction::kUp},
-       "body_vertical"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kUp,
-        Snake::Direction::kRight},
-       "corner_up_right"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kRight,
-        Snake::Direction::kUp},
-       "corner_up_right"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kRight,
-        Snake::Direction::kDown},
-       "corner_down_right"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kDown,
-        Snake::Direction::kRight},
-       "corner_down_right"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kDown,
-        Snake::Direction::kLeft},
-       "corner_down_left"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kLeft,
-        Snake::Direction::kDown},
-       "corner_down_left"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kLeft,
-        Snake::Direction::kUp},
-       "corner_up_left"},
-      {{SnakeSprites::Part::kBody, Snake::Direction::kUp,
-        Snake::Direction::kLeft},
-       "corner_up_left"},
+      {{Part::kBody, Dir::kLeft,        Dir::kRight}, "body_horizontal"},
+      {{Part::kBody, Dir::kRight,       Dir::kLeft},  "body_horizontal"},
+      {{Part::kBody, Dir::kUp,          Dir::kDown},  "body_vertical"},
+      {{Part::kBody, Dir::kDown,        Dir::kUp},    "body_vertical"},
+      {{Part::kBody, Dir::kUp,          Dir::kRight}, "corner_up_right"},
+      {{Part::kBody, Dir::kRight,       Dir::kUp},    "corner_up_right"},
+      {{Part::kBody, Dir::kRight,       Dir::kDown},  "corner_down_right"},
+      {{Part::kBody, Dir::kDown,        Dir::kRight}, "corner_down_right"},
+      {{Part::kBody, Dir::kDown,        Dir::kLeft},  "corner_down_left"},
+      {{Part::kBody, Dir::kLeft,        Dir::kDown},  "corner_down_left"},
+      {{Part::kBody, Dir::kLeft,        Dir::kUp},    "corner_up_left"},
+      {{Part::kBody, Dir::kUp,          Dir::kLeft},  "corner_up_left"},
 
       /* Head sprites */
-      {{SnakeSprites::Part::kHead, Snake::Direction::kDown,
-        Snake::Direction::kUp},
-       "head_up"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kUp,
-        Snake::Direction::kDown},
-       "head_down"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kRight,
-        Snake::Direction::kLeft},
-       "head_left"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kLeft,
-        Snake::Direction::kRight},
-       "head_right"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kUp,
-        Snake::Direction::kRight},
-       "head_vertical_right_up"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kRight,
-        Snake::Direction::kUp},
-       "head_horizontal_right_up"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kRight,
-        Snake::Direction::kDown},
-       "head_horizontal_right_down"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kDown,
-        Snake::Direction::kRight},
-       "head_vertical_right_down"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kDown,
-        Snake::Direction::kLeft},
-       "head_vertical_left_down"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kLeft,
-        Snake::Direction::kDown},
-       "head_horizontal_left_down"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kLeft,
-        Snake::Direction::kUp},
-       "head_horizontal_left_up"},
-      {{SnakeSprites::Part::kHead, Snake::Direction::kUp,
-        Snake::Direction::kLeft},
-       "head_vertical_left_up"},
-
+      {{Part::kHead, Dir::kDown,        Dir::kUp},    "head_up"},
+      {{Part::kHead, Dir::kUp,          Dir::kDown},  "head_down"},
+      {{Part::kHead, Dir::kRight,       Dir::kLeft},  "head_left"},
+      {{Part::kHead, Dir::kLeft,        Dir::kRight}, "head_right"},
+      {{Part::kHead, Dir::kDown,        Dir::kRight}, "head_vertical_right_up"},
+      {{Part::kHead, Dir::kDown,        Dir::kLeft},  "head_vertical_left_up"},
+      {{Part::kHead, Dir::kUp,          Dir::kRight}, "head_vertical_right_down"},
+      {{Part::kHead, Dir::kUp,          Dir::kLeft},  "head_vertical_left_down"},
+      {{Part::kHead, Dir::kLeft,        Dir::kUp},    "head_horizontal_right_up"},
+      {{Part::kHead, Dir::kLeft,        Dir::kDown},  "head_horizontal_right_down"},
+      {{Part::kHead, Dir::kRight,       Dir::kUp},    "head_horizontal_left_up"},
+      {{Part::kHead, Dir::kRight,       Dir::kDown},  "head_horizontal_left_down"},
       /* Tail sprites */
-      {{SnakeSprites::Part::kTail, Snake::Direction::kUp,
-        Snake::Direction::kDown},
-       "tail_up"},
-      {{SnakeSprites::Part::kTail, Snake::Direction::kDown,
-        Snake::Direction::kUp},
-       "tail_down"},
-      {{SnakeSprites::Part::kTail, Snake::Direction::kLeft,
-        Snake::Direction::kRight},
-       "tail_left"},
-      {{SnakeSprites::Part::kTail, Snake::Direction::kRight,
-        Snake::Direction::kLeft},
-       "tail_right"},
+      {{Part::kTail, Dir::kUp,          Dir::kDown},  "tail_up"},
+      {{Part::kTail, Dir::kDown,        Dir::kUp},    "tail_down"},
+      {{Part::kTail, Dir::kLeft,        Dir::kRight}, "tail_left"},
+      {{Part::kTail, Dir::kRight,       Dir::kLeft},  "tail_right"},
   };
 }  // namespace
 
@@ -193,18 +140,18 @@ void SnakeSprites::Draw(SDL_Renderer *renderer, const Snake &snake, int cell_w,
                         int cell_h, int grid_w, int grid_h) const {
   // Cells from the tail to the head: the body followed by the head cell.
   std::vector<SDL_Point> chain(snake.body.begin(), snake.body.end());
-  chain.push_back({static_cast<int>(snake.head_x), static_cast<int>(snake.head_y)});
+  chain.push_back(snake.head);
   const std::size_t chain_size = chain.size();
   
+  //Draw head
+  DrawSprite(renderer, SpriteName(Part::kHead, chain[chain_size - 2], chain.back(), Ahead(chain.back(), snake.direction), grid_w, grid_h), chain.back(), cell_w, cell_h);
+
+  //Draw body
   for (std::size_t i = 1; i < chain_size - 1; ++i) {
     DrawSprite(renderer, SpriteName(Part::kBody, chain[i - 1], chain[i], chain[i + 1], grid_w, grid_h), chain[i], cell_w, cell_h);
   }
-  if (chain_size >= 2) {
-    DrawSprite(renderer, SpriteName(Part::kHead, chain[chain_size - 2], chain.back(), Ahead(chain.back(), snake.direction), grid_w, grid_h), chain.back(), cell_w, cell_h);
-    DrawSprite(renderer, SpriteName(Part::kTail, {2 * chain[0].x - chain[1].x, 2 * chain[0].y - chain[1].y}, chain[0], chain[1], grid_w, grid_h), chain[0], cell_w, cell_h);
-  } else if (chain_size == 1) {
-    DrawSprite(renderer, SpriteName(Part::kHead, {2 * chain[0].x - Ahead(chain[0], snake.direction).x, 2 * chain[0].y - Ahead(chain[0], snake.direction).y}, chain[0], Ahead(chain[0], snake.direction), grid_w, grid_h), chain[0], cell_w, cell_h);
-  }
 
+  //Draw tail
+  DrawSprite(renderer, SpriteName(Part::kTail, {2 * chain[0].x - chain[1].x, 2 * chain[0].y - chain[1].y}, chain[0], chain[1], grid_w, grid_h), chain[0], cell_w, cell_h);
 
 }
