@@ -42,7 +42,12 @@ const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                     now.time_since_epoch()).count() % 1000;
 
 std::tm local_time;
-localtime_r(&seconds, &local_time);
+#ifdef _WIN32
+  localtime_s(&local_time, &seconds);
+#else
+  localtime_r(&seconds, &local_time);
+#endif
+
 
   std::ostringstream oss;
   oss << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S") << '.'
