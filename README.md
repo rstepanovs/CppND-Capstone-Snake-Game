@@ -34,7 +34,7 @@ Code Review post.
 
 ## Dependencies for Running Locally
 
-* cmake >= 3.7
+* cmake >= 3.10
 * make
 * gcc/g++ with C++17 support (gcc >= 8, because of `<filesystem>`)
 * pkg-config
@@ -53,9 +53,8 @@ Tools, `xcode-select --install`):
 brew install cmake pkg-config sdl2 sdl2_ttf
 ```
 
-On Windows the project has not been tested. The recommended way is WSL2 with
-Ubuntu and the instructions above. A native build should be possible with
-MSYS2/MinGW-w64 (a UCRT64 or MINGW64 shell), but it has not been tried:
+On Windows the project builds with MSYS2/MinGW-w64. Install MSYS2 and use its
+MINGW64 shell:
 
 ```
 pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
@@ -68,17 +67,27 @@ installed in an unusual place, point CMake to them with `CMAKE_PREFIX_PATH` and
 `PKG_CONFIG_PATH`, for example
 `PKG_CONFIG_PATH=/opt/sdl2/lib/pkgconfig cmake ..`.
 
-Tested platforms: Ubuntu Linux with gcc (built and played). On macOS (Apple
-silicon, AppleClang) the code was compiled by a reviewer, after the CMake fix
-for `string(STRIP ...)`; I have not played it there. Other platforms and
-compilers are not tested.
+On MSYS2 CMake picks the Ninja generator, so build with
+`cmake --build .` (see below) and not with `make`. Run `./SnakeGame.exe` from the
+`build` directory, where the `assets` are copied. Alternatively use WSL2 with
+Ubuntu and the instructions above.
+
+Tested platforms:
+
+* Ubuntu Linux, gcc: built and played.
+* Windows 11 (or the version you use), MSYS2 MINGW64, gcc 16.2, CMake 4.4, SDL2_ttf
+  2.24: built and played.
+* macOS (Apple silicon, AppleClang): compiled by a reviewer, I have not played it
+  there.
+
+Other platforms and compilers (for example MSVC) are not tested.
 
 ## Basic Build Instructions
 
 1. Clone this repo.
 2. Make a build directory in the top level directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./SnakeGame`
+3. Compile: `cmake .. && cmake --build .`
+4. Run it: `./SnakeGame` (`./SnakeGame.exe` on Windows)
 
 CMake copies the `assets` directory next to the executable, the game looks for
 its sprites and the font there.
@@ -118,7 +127,7 @@ and the destructor writes it to the log.
 README (3 points): this file describes the project, the build instructions and
 how the rubric is addressed.
 
-Compiling: `cmake .. && make` builds without errors or warnings with
+Compiling: `cmake .. && cmake --build .` builds without errors or warnings with
 `-Wall -Wextra`.
 
 ### Loops, Functions, I/O
@@ -149,7 +158,7 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 |---|---|
 | The project makes use of references in function declarations | `const Snake &`, `const Item &`, `const std::vector<SDL_Point> &` in `renderer.h:26`, `const SDL_Point &` in `poison_field.h`, `snake_sprites.h:33` |
 | The project uses destructors appropriately | `PoisonSpawner::~PoisonSpawner` `poison_spawner.cpp:21` stops and joins the thread, `Renderer::~Renderer` releases the SDL objects in the right order (fonts before `TTF_Quit()`) |
-| The project uses scope / RAII | `SurfacePtr`, `TexturePtr` and `FontPtr` (`unique_ptr` with a custom deleter) `SDL-extras.h:8-10`, `Texture`, `TextRenderer` (owns a `FontPtr`), `std::lock_guard` in `message_queue.h:12` and `logging.cpp:54` |
+| The project uses scope / RAII | `SurfacePtr`, `TexturePtr` and `FontPtr` (`unique_ptr` with a custom deleter) `SDL-extras.h:8-10`, `Texture`, `TextRenderer` (owns a `FontPtr`), `std::lock_guard` in `message_queue.h:12` and `logging.cpp:59` |
 | The project follows the Rule of 5 | `Texture` `texture.h:15-20` declares the destructor, copy and move operations explicitly (movable, not copyable). Classes that cannot be copied or moved say so with `= delete`: `PoisonSpawner` `poison_spawner.h:28-31` (the thread holds `this`), `Renderer` `renderer.h:20-23` (owns the SDL window), `Logging::Line` `logging.h:35-38`, `Item` `item.h:16-20` (the game moves `std::unique_ptr<Item>`, not the objects). `TextRenderer` follows the rule of 0: its only resource is a `FontPtr` |
 | The project uses move semantics | `MessageQueue::Send(T &&)` `message_queue.h:11`, `std::move` of poisons `game.cpp:126`, `poison_field.cpp:8`, movable `Texture` `texture.h:19` |
 | The project uses smart pointers instead of raw pointers | `std::unique_ptr<Item>` `game.h:31`, `std::vector<std::unique_ptr<Poison>>` `poison_field.h:32`, `std::unique_ptr<SnakeSprites>` and the `TextRenderer`s `renderer.h:46-50`, `FontPtr` `SDL-extras.h:10` |
@@ -161,7 +170,7 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 | The project uses multithreading | `PoisonSpawner` runs its own `std::thread`, `poison_spawner.cpp:18` |
 | A promise and future is used in the project | `std::promise<std::size_t> _spawned` and its future `poison_spawner.h:51-52`: the worker counts the poisons and calls `set_value` at the end of `Run` `poison_spawner.cpp:73` (or `set_exception` on an error), the destructor reads the result with `get()` `poison_spawner.cpp:33` |
 | A condition variable is used in the project | `std::condition_variable _stop_cv` with `_stop_mutex` and `_stopping` `poison_spawner.h:47-49`: an interruptible sleep with a predicate `poison_spawner.cpp:62`, the destructor sets the flag and calls `notify_one` `poison_spawner.cpp:24-27` |
-| A mutex or lock is used in the project | `MessageQueue` `message_queue.h:12`, `Logging` `logging.cpp:54` (`std::mutex` with `std::lock_guard`); `std::atomic` for the log level `logging.h:63` and for the spawner switch `poison_spawner.h:43` |
+| A mutex or lock is used in the project | `MessageQueue` `message_queue.h:12`, `Logging` `logging.cpp:59` (`std::mutex` with `std::lock_guard`); `std::atomic` for the log level `logging.h:63` and for the spawner switch `poison_spawner.h:43` |
 
 The program was also run under ThreadSanitizer
 (`-fsanitize=thread`): it reports nothing in this code, only warnings that come
