@@ -4,7 +4,7 @@
 #include "logging.h"
 
 
-int main() {
+int main(int, char**) {
   constexpr std::size_t kFramesPerSecond{60};
   constexpr std::size_t kMsPerFrame{1000 / kFramesPerSecond};
   constexpr std::size_t kScreenWidth{640};
