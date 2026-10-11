@@ -35,7 +35,8 @@ class Logging {
     Line(Line &&) = default;
     Line(const Line &) = delete;
     Line &operator=(const Line &) = delete;
-
+    Line &operator=(Line &&) = delete;
+    
     template <typename T>
     Line &operator<<(const T &value) {
       _stream << value;

@@ -17,6 +17,10 @@ class Renderer {
   Renderer(const std::size_t screen_width, const std::size_t screen_height,
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
+  Renderer(const Renderer &) = delete;
+  Renderer &operator=(const Renderer &) = delete;
+  Renderer(Renderer &&) = delete;
+  Renderer &operator=(Renderer &&) = delete;
 
   // Draws the board and the score in the top left corner.
   void Render(const Snake &snake, const Item &food,

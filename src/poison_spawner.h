@@ -5,6 +5,9 @@
 #include <memory>
 #include <future>
 #include <thread>
+#include <cstddef>
+#include <mutex>
+#include <condition_variable>
 #include "message_queue.h"
 #include "poison.h"
 
@@ -24,6 +27,9 @@ class PoisonSpawner {
 
   PoisonSpawner(const PoisonSpawner &) = delete;
   PoisonSpawner &operator=(const PoisonSpawner &) = delete;
+  PoisonSpawner(PoisonSpawner &&) = delete;
+  PoisonSpawner &operator=(PoisonSpawner &&) = delete;
+
 
   // While the spawner is not active the thread keeps running but adds no
   // poisons. Called by the game thread, read by the spawner thread, hence the
@@ -37,8 +43,13 @@ class PoisonSpawner {
   std::atomic<bool> _active{false};
   int _grid_width;
   int _grid_height;
-  std::promise<void> _stop;
-  std::future<void> _stop_future;
+  
+  std::mutex _stop_mutex;
+  std::condition_variable _stop_cv;
+  bool _stopping{false};
+
+  std::promise<std::size_t> _spawned;
+  std::future<std::size_t> _spawned_future;
   std::thread _thread;
 };
 

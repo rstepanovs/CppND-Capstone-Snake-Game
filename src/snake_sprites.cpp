@@ -138,8 +138,8 @@ void SnakeSprites::DrawSprite(SDL_Renderer *renderer, const std::string &name,
 void SnakeSprites::Draw(SDL_Renderer *renderer, const Snake &snake, int cell_w,
                         int cell_h, int grid_w, int grid_h) const {
   // Cells from the tail to the head: the body followed by the head cell.
-  std::vector<SDL_Point> chain(snake.body.begin(), snake.body.end());
-  chain.push_back(snake.head);
+  std::vector<SDL_Point> chain(snake.Body().begin(), snake.Body().end());
+  chain.push_back(snake.Head());
   const std::size_t chain_size = chain.size();
 
   //Draw head

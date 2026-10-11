@@ -142,14 +142,14 @@ void Game::Update() {
 
   _snake.Update();
 
-  if (!_snake.alive) {
+  if (!_snake.IsAlive()) {
     _state = GameState::kGameOver;
     _poison_spawner.SetActive(false);
     Logging::Info() << "Snake has died. Game over.";
     return;
   }
 
-  SDL_Point new_point = _snake.head;
+  SDL_Point new_point = _snake.Head();
 
 
   // Check if there's food over here
@@ -169,4 +169,4 @@ void Game::Update() {
 }
 
 int Game::GetScore() const { return score; }
-int Game::GetSize() const { return _snake.size; }
+int Game::GetSize() const { return _snake.GetSize(); }

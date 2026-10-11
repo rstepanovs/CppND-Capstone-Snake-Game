@@ -46,6 +46,33 @@ On Debian/Ubuntu:
 sudo apt install build-essential cmake pkg-config libsdl2-dev libsdl2-ttf-dev
 ```
 
+On macOS (Homebrew; the compiler is AppleClang from the Xcode Command Line
+Tools, `xcode-select --install`):
+
+```
+brew install cmake pkg-config sdl2 sdl2_ttf
+```
+
+On Windows the project has not been tested. The recommended way is WSL2 with
+Ubuntu and the instructions above. A native build should be possible with
+MSYS2/MinGW-w64 (a UCRT64 or MINGW64 shell), but it has not been tried:
+
+```
+pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
+          mingw-w64-x86_64-pkgconf mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf
+```
+
+How CMake finds the libraries: SDL2 with `find_package(SDL2)` and SDL2_ttf with
+`pkg-config`, which is why `pkg-config` is required. If the libraries are
+installed in an unusual place, point CMake to them with `CMAKE_PREFIX_PATH` and
+`PKG_CONFIG_PATH`, for example
+`PKG_CONFIG_PATH=/opt/sdl2/lib/pkgconfig cmake ..`.
+
+Tested platforms: Ubuntu Linux with gcc (built and played). On macOS (Apple
+silicon, AppleClang) the code was compiled by a reviewer, after the CMake fix
+for `string(STRIP ...)`; I have not played it there. Other platforms and
+compilers are not tested.
+
 ## Basic Build Instructions
 
 1. Clone this repo.
@@ -79,8 +106,12 @@ lifetime (4-8 s) and puts it into a `MessageQueue`. At the beginning of every
 `Game::Update` the game thread takes everything from the queue and puts a poison
 on the board only if the cell is free and there are fewer than three poisons.
 The board itself is therefore touched by one thread only and needs no lock. The
-thread is interruptible: its sleep is `std::future::wait_for`, and the destructor
-wakes it up through the matching `std::promise`.
+thread is interruptible: its sleep is `std::condition_variable::wait_for` with a
+predicate, and the destructor sets a flag under the mutex and notifies the
+condition variable, so the thread wakes up at once and does not wait for the
+end of its sleep. When it stops, the thread sends the number of poisons it has
+generated back to the destructor through a `std::promise`/`std::future` pair,
+and the destructor writes it to the log.
 
 ## Rubric points
 
@@ -94,41 +125,43 @@ Compiling: `cmake .. && make` builds without errors or warnings with
 
 | Point | Where |
 |---|---|
-| The project demonstrates an understanding of C++ functions and control structures | The game loop `game.cpp:32`, the state `switch` `game.cpp:49`, the direction `switch` `snake.cpp:22`, the sprite loops `snake_sprites.cpp:149` |
+| The project demonstrates an understanding of C++ functions and control structures | The game loop `game.cpp:32`, the state `switch` `game.cpp:49`, the direction `switch` `snake.cpp:46`, the sprite loops `snake_sprites.cpp:149` |
 | The project accepts input from a user and processes the input | `Controller::HandleInput`, `controller.cpp:14` (`SDL_PollEvent`) |
 | The project reads data from a file and processes the data | Sprites and the font are read from the `assets` directory: `texture.cpp:6` (BMP files), `text_renderer.cpp:5` (TTF font), `snake_sprites.cpp:56` and `renderer.cpp:56` (every `.bmp` of a directory, `std::filesystem::directory_iterator`) |
-| The project uses data structures and immutable variables | `std::map` with a `std::tuple` key `snake_sprites.cpp:17`, `std::unordered_map` of textures `renderer.h:43`, `constexpr` constants `main.cpp:8`, `poison_spawner.cpp:9`, `snake.h:13` |
+| The project uses data structures and immutable variables | `std::map` with a `std::tuple` key `snake_sprites.cpp:16`, `std::unordered_map` of textures `renderer.h:47`, `constexpr` constants `main.cpp:8`, `poison_spawner.cpp:10`, `snake.h:13` |
 
 ### Object Oriented Programming
 
 | Point | Where |
 |---|---|
 | Classes with appropriate access specifiers | All classes in `src/*.h`, for example `PoisonField` (`poison_field.h`): public interface, private storage |
-| Constructors use member initialization lists | `game.cpp:11`, `poison.cpp:3`, `fruit.cpp:9`, `poison_spawner.cpp:15` |
+| Constructors use member initialization lists | `game.cpp:11`, `poison.cpp:3`, `fruit.cpp:6`, `poison_spawner.cpp:16` |
 | Classes abstract implementation details from their interfaces | `SnakeSprites` exposes `Draw` only, the table and the geometry helpers are private; `MessageQueue` hides the mutex |
 | Classes encapsulate behavior | `PoisonField`, `Texture`, `TextRenderer`, `Logging` |
+| Member data that is subject to an invariant is hidden | `Snake` keeps `_size`, `_alive`, `_head` and `_body` private (`snake.h`), so the size always matches the body; other classes read them through `GetSize()`, `IsAlive()`, `Head()` and `Body()` |
 | Classes follow an appropriate inheritance hierarchy with virtual and override functions | `Item` (`item.h:11`) is an abstract base with the pure virtual `Apply` and `SpriteName`, `Fruit` (`fruit.h:8`) and `Poison` (`poison.h:10`) override them. `Game` holds the food as `std::unique_ptr<Item>` and calls `Apply` without knowing the kind |
-| Overloaded functions or operators | `operator==` and `operator!=` for `SDL_Point` in `SDL-extras.h:14`, `Logging::Line::operator<<` `logging.h:40` |
-| Templates generalize functions or classes | `MessageQueue<T>` `message_queue.h:8`, `Logging::Line::operator<<` `logging.h:39` |
+| Overloaded functions or operators | `operator==` and `operator!=` for `SDL_Point` in `SDL-extras.h:14`, `Logging::Line::operator<<` `logging.h:41` |
+| Templates generalize functions or classes | `MessageQueue<T>` `message_queue.h:8`, `Logging::Line::operator<<` `logging.h:40` |
 
 ### Memory Management
 
 | Point | Where |
 |---|---|
-| The project makes use of references in function declarations | `const Snake &`, `const Item &`, `const std::vector<SDL_Point> &` in `renderer.h:22`, `const SDL_Point &` in `poison_field.h`, `snake_sprites.h:33` |
-| The project uses destructors appropriately | `PoisonSpawner::~PoisonSpawner` `poison_spawner.cpp:20` stops and joins the thread, `Renderer::~Renderer` releases the SDL objects in the right order (fonts before `TTF_Quit()`) |
+| The project makes use of references in function declarations | `const Snake &`, `const Item &`, `const std::vector<SDL_Point> &` in `renderer.h:26`, `const SDL_Point &` in `poison_field.h`, `snake_sprites.h:33` |
+| The project uses destructors appropriately | `PoisonSpawner::~PoisonSpawner` `poison_spawner.cpp:21` stops and joins the thread, `Renderer::~Renderer` releases the SDL objects in the right order (fonts before `TTF_Quit()`) |
 | The project uses scope / RAII | `SurfacePtr`, `TexturePtr` and `FontPtr` (`unique_ptr` with a custom deleter) `SDL-extras.h:8-10`, `Texture`, `TextRenderer` (owns a `FontPtr`), `std::lock_guard` in `message_queue.h:12` and `logging.cpp:54` |
-| The project follows the Rule of 5 | `Texture` `texture.h:15-20` declares the destructor, copy and move operations explicitly. `TextRenderer` follows the rule of 0: its only resource is a `FontPtr` |
+| The project follows the Rule of 5 | `Texture` `texture.h:15-20` declares the destructor, copy and move operations explicitly (movable, not copyable). Classes that cannot be copied or moved say so with `= delete`: `PoisonSpawner` `poison_spawner.h:28-31` (the thread holds `this`), `Renderer` `renderer.h:20-23` (owns the SDL window), `Logging::Line` `logging.h:35-38`, `Item` `item.h:16-20` (the game moves `std::unique_ptr<Item>`, not the objects). `TextRenderer` follows the rule of 0: its only resource is a `FontPtr` |
 | The project uses move semantics | `MessageQueue::Send(T &&)` `message_queue.h:11`, `std::move` of poisons `game.cpp:126`, `poison_field.cpp:8`, movable `Texture` `texture.h:19` |
-| The project uses smart pointers instead of raw pointers | `std::unique_ptr<Item>` `game.h:31`, `std::vector<std::unique_ptr<Poison>>` `poison_field.h:32`, `std::unique_ptr<SnakeSprites>` and the `TextRenderer`s `renderer.h:42-46`, `FontPtr` `SDL-extras.h:10` |
+| The project uses smart pointers instead of raw pointers | `std::unique_ptr<Item>` `game.h:31`, `std::vector<std::unique_ptr<Poison>>` `poison_field.h:32`, `std::unique_ptr<SnakeSprites>` and the `TextRenderer`s `renderer.h:46-50`, `FontPtr` `SDL-extras.h:10` |
 
 ### Concurrency
 
 | Point | Where |
 |---|---|
-| The project uses multithreading | `PoisonSpawner` runs its own `std::thread`, `poison_spawner.cpp:17` |
-| A promise and future is used in the project | `std::promise<void> _stop` and `std::future<void> _stop_future` `poison_spawner.h:40-41`; the thread sleeps in `wait_for` `poison_spawner.cpp:40`, the destructor calls `set_value` `poison_spawner.cpp:21` |
-| A mutex or lock is used in the project | `MessageQueue` `message_queue.h:12`, `Logging` `logging.cpp:54` (`std::mutex` with `std::lock_guard`); `std::atomic` for the log level `logging.h:62` and for the spawner switch `poison_spawner.h:37` |
+| The project uses multithreading | `PoisonSpawner` runs its own `std::thread`, `poison_spawner.cpp:18` |
+| A promise and future is used in the project | `std::promise<std::size_t> _spawned` and its future `poison_spawner.h:51-52`: the worker counts the poisons and calls `set_value` at the end of `Run` `poison_spawner.cpp:73` (or `set_exception` on an error), the destructor reads the result with `get()` `poison_spawner.cpp:33` |
+| A condition variable is used in the project | `std::condition_variable _stop_cv` with `_stop_mutex` and `_stopping` `poison_spawner.h:47-49`: an interruptible sleep with a predicate `poison_spawner.cpp:62`, the destructor sets the flag and calls `notify_one` `poison_spawner.cpp:24-27` |
+| A mutex or lock is used in the project | `MessageQueue` `message_queue.h:12`, `Logging` `logging.cpp:54` (`std::mutex` with `std::lock_guard`); `std::atomic` for the log level `logging.h:63` and for the spawner switch `poison_spawner.h:43` |
 
 The program was also run under ThreadSanitizer
 (`-fsanitize=thread`): it reports nothing in this code, only warnings that come

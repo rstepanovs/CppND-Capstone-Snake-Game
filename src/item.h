@@ -14,6 +14,10 @@ class Item {
 
 
   virtual ~Item() = default;
+  Item(const Item &) = delete;
+  Item &operator=(const Item &) = delete;
+  Item(Item &&) = delete;
+  Item &operator=(Item &&) = delete;
 
   virtual void Apply(Snake &snake, int &score) const = 0;
   virtual const std::string &SpriteName() const = 0;
